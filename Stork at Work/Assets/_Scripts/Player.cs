@@ -24,8 +24,8 @@ public class Player : MonoBehaviour
     void Awake()
     {
         _transform = transform;
-        _speed = 7 * _upgrades.Upgrades[(int)PlayerUpgrades.Upgrade.Speed];
-        int maximumLives = 2 + _upgrades.Upgrades[(int)PlayerUpgrades.Upgrade.Lives];
+        _speed = 7 * _upgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Speed);
+        int maximumLives = 2 + _upgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Lives);
         for (int i = 0; i < maximumLives; ++i) 
         {
             _lives[i] = Instantiate(_lifeCounterPrefab, _rectTransformForLives);
@@ -38,6 +38,21 @@ public class Player : MonoBehaviour
         Obstacle.OnObstacled += Obstacle_OnObstacled;
         Finish.OnFinishLineReached += Finish_OnFinishLineReached;
         DeliveryDropper.OnDeliveryLocationReached += DeliveryDropper_OnDeliveryLocationReached;
+    }
+    private void OnDisable()
+    {
+        _gameInput.OnJumpAction -= _gameInput_OnJumpAction;
+    }
+    private void OnDestroy()
+    {
+        DeliveryManager.Instance.OnStartedToDeliver -= Instance_OnStartedToDeliver;
+        Obstacle.OnObstacled -= Obstacle_OnObstacled;
+        Finish.OnFinishLineReached -= Finish_OnFinishLineReached;
+        DeliveryDropper.OnDeliveryLocationReached -= DeliveryDropper_OnDeliveryLocationReached;
+    }
+    private void FixedUpdate()
+    {
+        _transform.position += _speed * Time.fixedDeltaTime * (Vector3)_gameInput.GetMovementVectorNormalized();
     }
     private void DeliveryDropper_OnDeliveryLocationReached(int amountOfBabies)
     {
@@ -68,32 +83,18 @@ public class Player : MonoBehaviour
         _lives.Remove(_lives.Count);
         if (_lives.Count == 0) 
         {
-            _loseCanvas.gameObject.SetActive(true);
+            _loseCanvas.SetActive(true);
             OnDeath?.Invoke();
         }
     }
     private void Instance_OnStartedToDeliver()
     {
         _transform.position = Vector3.zero;
-        _rb.AddForce(Vector2.right * _speed, ForceMode2D.Impulse);
+        StartMoving();
         for (int i = 0; i < _lives.Count; ++i)
         {
             _lives[i].gameObject.SetActive(true);
         }
-    }
-    private void OnDisable()
-    {
-        _gameInput.OnJumpAction -= _gameInput_OnJumpAction;
-    }
-    private void OnDestroy()
-    {
-        DeliveryManager.Instance.OnStartedToDeliver -= Instance_OnStartedToDeliver;
-        Obstacle.OnObstacled -= Obstacle_OnObstacled;
-        Finish.OnFinishLineReached -= Finish_OnFinishLineReached;
-    }
-    private void FixedUpdate()
-    {
-        _transform.position += _speed * Time.fixedDeltaTime * (Vector3)_gameInput.GetMovementVectorNormalized();
     }
     private void _gameInput_OnJumpAction()
     {
@@ -103,5 +104,11 @@ public class Player : MonoBehaviour
     {
         _rb.constraints = RigidbodyConstraints2D.FreezeAll;
         _spriteRenderer.gameObject.SetActive(false);
+    }
+    private void StartMoving()
+    {
+        _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        _rb.AddForce(Vector2.right * _speed, ForceMode2D.Impulse);
+        _spriteRenderer.gameObject.SetActive(true);
     }
 }

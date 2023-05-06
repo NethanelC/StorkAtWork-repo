@@ -97,7 +97,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _image: {fileID: 6935778959500414106}
-  _clip: {fileID: 0}
   _text: {fileID: 6935778959913216092}
 --- !u!1 &6935778959500414104
 GameObject:
@@ -244,8 +243,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Order Arrived!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: f60456c8968bd674db2335f802fc198c, type: 2}
-  m_sharedMaterial: {fileID: -747687552850667083, guid: f60456c8968bd674db2335f802fc198c, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: a16e84921eb6c1948849b4b8f1cee396, type: 2}
+  m_sharedMaterial: {fileID: -5261634006457514361, guid: a16e84921eb6c1948849b4b8f1cee396, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

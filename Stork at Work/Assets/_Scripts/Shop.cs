@@ -5,7 +5,6 @@ using TMPro;
 
 public class Shop : MonoBehaviour
 {
-    [SerializeField] private PlayerUpgrades _playerUpgrades;
     [SerializeField] private TextMeshProUGUI _currentPacifiersText;
     private void Awake()
     {
@@ -18,6 +17,6 @@ public class Shop : MonoBehaviour
     }
     private void UpdatePacifiersText()
     {
-        _currentPacifiersText.text = _playerUpgrades.CurrentPacifiers.ToString();
+        _currentPacifiersText.text = PlayerPrefs.GetInt("Pacifiers", 0).ToString();
     }
 }

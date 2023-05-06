@@ -18,21 +18,23 @@ public class UpgradeButton : MonoBehaviour
     [SerializeField] private Image[] _statusImages = new Image [5];
     public static event Action OnUpgradePurchased;
     private int _currentUpgradePrice;
+    private string _upgradeName => _upgrade.ToString();
+    private int _currentUpgradedTimes => PlayerPrefs.GetInt(_upgradeName);
+    private int _currentPacifiers => PlayerPrefs.GetInt("Pacifiers", 0);
     private void Awake()
     {
         UpdateVisuals();
-        OnUpgradePurchased += UpdateVisuals;
         _upgradename.text = _upgrade.ToString().Replace("_", " ");
-        _upgradeImage.sprite = _playerUpgrades.GetFittingSprite(_upgrade);
+        OnUpgradePurchased += UpdateVisuals;
         for (int i = 0; i < _statusImages.Length; ++i) 
         {
-            _statusImages[i].sprite = _statusImagesSprites[i < _playerUpgrades.Upgrades[(int)_upgrade] ? 1 : 0];
+            _statusImages[i].sprite = _statusImagesSprites[i < _currentUpgradedTimes ? 1 : 0];
         }
         _upgradeButton.onClick.AddListener(() => 
-        { 
-            _playerUpgrades.IncrementAnUpgrade(_upgrade);
-            _playerUpgrades.RemovePacifiers(_currentUpgradePrice);
-            _statusImages[_playerUpgrades.Upgrades[(int)_upgrade] - 1].sprite = _statusImagesSprites[1];
+        {
+            PlayerPrefs.SetInt(_upgradeName, _currentUpgradedTimes + 1);
+            PlayerPrefs.SetInt("Pacifiers", _currentPacifiers - _currentUpgradePrice);
+            _statusImages[_currentUpgradedTimes - 1].sprite = _statusImagesSprites[1];
             OnUpgradePurchased?.Invoke();
         });
     }
@@ -42,8 +44,8 @@ public class UpgradeButton : MonoBehaviour
     }
     private void UpdateVisuals()
     {
-        _currentUpgradePrice = _playerUpgrades.Upgrades[(int)_upgrade] * 2;
-        _upgradeButton.interactable = _playerUpgrades.CurrentPacifiers > _currentUpgradePrice;
+        _currentUpgradePrice = _currentUpgradedTimes * 2;
+        _upgradeButton.interactable = _currentPacifiers >= _currentUpgradePrice;
         _upgradeCost.text = _currentUpgradePrice.ToString();
     }
 }

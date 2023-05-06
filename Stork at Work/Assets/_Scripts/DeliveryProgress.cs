@@ -17,7 +17,24 @@ public class DeliveryProgress : MonoBehaviour
     {
         DeliveryManager.Instance.OnStartedToDeliver += Instance_OnStartedToDeliver;
         DeliveryButton.OnDeliveryButtonStatusChanged += DeliveryButton_OnDeliveryTaken;
-        _progressSlider.gameObject.SetActive(false);
+        Finish.OnFinishLineReached += Finish_OnFinishLineReached;
+    }
+    private void Finish_OnFinishLineReached()
+    {
+        foreach(var waypoint in _waypointsAdded)
+        {
+            Destroy(waypoint.Value.gameObject);
+        }
+        _waypointsAdded.Clear();
+    }
+    private void OnDisable()
+    {
+        DeliveryManager.Instance.OnStartedToDeliver -= Instance_OnStartedToDeliver;
+        DeliveryButton.OnDeliveryButtonStatusChanged -= DeliveryButton_OnDeliveryTaken;
+    }
+    private void Update()
+    {
+        _progressSlider.value = _playerTransform.position.x / _furthestDistance;
     }
     private void Instance_OnStartedToDeliver()
     {
@@ -58,14 +75,5 @@ public class DeliveryProgress : MonoBehaviour
         {
             waypoint.Value.ChangePositionOnRoute(_furthestDistance);
         }
-    }
-    private void OnDisable()
-    {
-        DeliveryManager.Instance.OnStartedToDeliver -= Instance_OnStartedToDeliver;
-        DeliveryButton.OnDeliveryButtonStatusChanged -= DeliveryButton_OnDeliveryTaken;
-    }
-    private void Update()
-    {
-        _progressSlider.value = _playerTransform.position.x / _furthestDistance;
     }
 }

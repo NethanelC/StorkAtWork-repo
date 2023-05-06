@@ -15,7 +15,7 @@ public class DeliveryDropper : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         OnDeliveryLocationReached?.Invoke(_deliveryAmount);
-        print (_deliveryAmount);
+        PlayerPrefs.SetInt("Pacifiers", PlayerPrefs.GetInt("Pacifiers" + _deliveryAmount));
         _collider.enabled = false;
     }
     private void Awake()

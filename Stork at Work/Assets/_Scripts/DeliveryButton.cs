@@ -36,7 +36,6 @@ public class DeliveryButton : MonoBehaviour
     private void Awake()
     {
         _normalColorBlock = _buttonAcceptDelivery.colors;
-        OnClickedUpdateVisuals += ToggleButtonUsable;
         _buttonAcceptDelivery.onClick.AddListener(() => 
         { 
             _isThisDeliveryInProgress = !_isThisDeliveryInProgress;
@@ -44,10 +43,27 @@ public class DeliveryButton : MonoBehaviour
             OnDeliveryButtonStatusChanged?.Invoke(_deliveryNumber, _amountToDeliver, _deliveryDistance, _deliveryType);
             OnClickedUpdateVisuals?.Invoke();
         });
+        OnClickedUpdateVisuals += ToggleButtonUsable;
+        DeliveryManager.Instance.OnStartedToDeliver += Instance_OnStartedToDeliver;
+        Finish.OnFinishLineReached += Finish_OnFinishLineReached;
+    }
+    private void Instance_OnStartedToDeliver()
+    {
+        if (_isThisDeliveryInProgress)
+        {
+            Destroy(gameObject);
+        }
     }
     private void OnDestroy()
     {
-        OnClickedUpdateVisuals -= ToggleButtonUsable;    
+        OnClickedUpdateVisuals -= ToggleButtonUsable;
+        DeliveryManager.Instance.OnStartedToDeliver -= Instance_OnStartedToDeliver;
+        Finish.OnFinishLineReached -= Finish_OnFinishLineReached;
+    }
+
+    private void Finish_OnFinishLineReached()
+    {
+        ToggleButtonUsable();
     }
     private void ToggleButtonUsable()
     {

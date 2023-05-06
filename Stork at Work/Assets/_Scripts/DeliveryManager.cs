@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 using static UnityEngine.Random;
 using Cysharp.Threading.Tasks;
 
@@ -23,8 +24,8 @@ public class DeliveryManager : MonoBehaviour
     private int _deliveriesOrderSoFar;
     private float _furthestDistance;
     private const float _distanceMultiplier = 100;
-    public bool MaxDeliveriesReached => _playerUpgrades.Upgrades[(int)PlayerUpgrades.Upgrade.Maximum_Deliveries] == _waypointsAdded.Count;
-    private int _randomDistanceByLevel => _deliveriesOrderSoFar * (int)Range(_distanceMultiplier - (_playerUpgrades.Upgrades[(int)PlayerUpgrades.Upgrade.Distance] * 20),  _distanceMultiplier + 20);
+    public bool MaxDeliveriesReached => _playerUpgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Maximum_Deliveries) == _waypointsAdded.Count;
+    private int _randomDistanceByLevel => _deliveriesOrderSoFar * (int)Range(_distanceMultiplier - (_playerUpgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Distance) * 20),  _distanceMultiplier + 20);
     private DeliveryType _randomTypeByLevel => (DeliveryType)Range(0, 2);
     public enum DeliveryType
     {
@@ -42,16 +43,20 @@ public class DeliveryManager : MonoBehaviour
             Destroy(this);
         }
         _deliverButton.onClick.AddListener(() => 
-        {
-            OnStartedToDeliver?.Invoke();
+        {    
             Instantiate(_finishPrefab, Vector2.right * _furthestDistance, Quaternion.identity);
-            gameObject.SetActive(false); 
+            foreach (var waypoint in _waypointsAdded)
+            {
+                Destroy(waypoint.Value.gameObject);
+            }
+            _waypointsAdded.Clear();
+            _deliveriesTakenText.text = $"0 / {_playerUpgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Maximum_Deliveries)}";
+            _furthestDistance = 0;
+            EventSystem.current.SetSelectedGameObject(null);
+            OnStartedToDeliver?.Invoke();
         });
-        _deliverButton.gameObject.SetActive(false);
-        _deliveriesTakenText.text = $"0 / {_playerUpgrades.Upgrades[(int)PlayerUpgrades.Upgrade.Maximum_Deliveries]}";
-        
+        _deliveriesTakenText.text = $"0 / {_playerUpgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Maximum_Deliveries)}"; 
         DeliveryButton.OnDeliveryButtonStatusChanged += DeliveryButton_OnDeliveryButtonStatusChanged;
-        DeliveryDropper.OnDeliveryLocationReached += DeliveryDropper_OnDeliveryLocationReached;
     }
     private void Start() 
     {
@@ -60,11 +65,6 @@ public class DeliveryManager : MonoBehaviour
     private void OnDestroy()
     {
         DeliveryButton.OnDeliveryButtonStatusChanged -= DeliveryButton_OnDeliveryButtonStatusChanged;
-        DeliveryDropper.OnDeliveryLocationReached -= DeliveryDropper_OnDeliveryLocationReached;
-    }
-    private void DeliveryDropper_OnDeliveryLocationReached(int pacifiers)
-    {
-        _playerUpgrades.CollectPacifiers(pacifiers);
     }
     private void DeliveryButton_OnDeliveryButtonStatusChanged(int deliveryNumber, int deliveryAmount, float deliveryDistance, DeliveryType deliveryType)
     {
@@ -98,12 +98,12 @@ public class DeliveryManager : MonoBehaviour
             waypoint.Value.ChangePositionOnRoute(_furthestDistance);
         }
         _deliverButton.gameObject.SetActive(_waypointsAdded.Count > 0);
-        _deliveriesTakenText.text = $"{_waypointsAdded.Count} / {_playerUpgrades.Upgrades[(int)PlayerUpgrades.Upgrade.Maximum_Deliveries]}";
+        _deliveriesTakenText.text = $"{_waypointsAdded.Count} / {_playerUpgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Maximum_Deliveries)}";
     }
     private async void SpawnDelivery()
     {
         _deliveriesOrderSoFar++;
-        Instantiate(_deliveryButtonPrefab, _deliveryMenu).Init(_deliveriesOrderSoFar, Range(1, _playerUpgrades.Upgrades[(int)PlayerUpgrades.Upgrade.Amount_Of_Babies] + 1), _randomDistanceByLevel, _randomTypeByLevel);
+        Instantiate(_deliveryButtonPrefab, _deliveryMenu).Init(_deliveriesOrderSoFar, Range(1, _playerUpgrades.CurrentUpgradedAmount(PlayerUpgrades.Upgrade.Amount_Of_Babies) + 1), _randomDistanceByLevel, _randomTypeByLevel);
         Instantiate(_deliveryNotifyPrefab);
         await UniTask.Delay(_deliveriesOrderSoFar * 5000).ContinueWith(SpawnDelivery);
     }

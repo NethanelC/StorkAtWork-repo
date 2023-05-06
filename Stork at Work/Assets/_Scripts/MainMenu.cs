@@ -12,7 +12,7 @@ public class MainMenu : MonoBehaviour
 
     private void Awake()
     {
-        PlayerPrefs.SetInt("Skin", 0);
+        SetFirstPlayerPrefs();
         _previousButton.onClick.AddListener(() => 
         {
             int currentSkin = PlayerPrefs.GetInt("Skin");
@@ -30,5 +30,19 @@ public class MainMenu : MonoBehaviour
             PlayerPrefs.SetInt("Skin", ++currentSkin % _playerSkins.AmountOfSkins);
             OnButtonChangedSkin?.Invoke();
         });
+    }
+    private void SetFirstPlayerPrefs()
+    {
+        if (PlayerPrefs.GetInt("FirstTime") == 0)
+        {
+            PlayerPrefs.SetInt("Skin", 0);
+            PlayerPrefs.SetInt("Pacifiers", 0);
+            PlayerPrefs.SetInt("Amount_Of_Babies", 1);
+            PlayerPrefs.SetInt("Distance", 1);
+            PlayerPrefs.SetInt("Maximum_Deliveries", 1);
+            PlayerPrefs.SetInt("Speed", 1);
+            PlayerPrefs.SetInt("Lives", 1);
+            PlayerPrefs.SetInt("FirstTime", 1);
+        }
     }
 }
